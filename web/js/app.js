@@ -307,7 +307,7 @@ applyTheme(localStorage.getItem(THEME_KEY) || "auto");
 
 // ── Commit hash ───────────────────────────────────────────────────────────────
 
-fetch("https://api.github.com/repos/juanjimpad/claude-rules-web/commits/main")
+fetch("version.json")
   .then(r => r.json())
   .then(data => {
     const sha = data?.sha?.slice(0, 7);

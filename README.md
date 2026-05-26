@@ -48,8 +48,10 @@ Click **+ Add repository** in the app and paste any GitHub repo URL. Extra sourc
 Static site deployed on Cloudflare Workers via [Wrangler](https://developers.cloudflare.com/workers/wrangler/).
 
 ```sh
-wrangler deploy
+./deploy.sh
 ```
+
+`deploy.sh` writes the current git SHA to `web/version.json` before deploying, so the app can display the version without hitting the GitHub API rate limit.
 
 ## Related
 
