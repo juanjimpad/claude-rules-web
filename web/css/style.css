@@ -75,6 +75,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 /* Source badge */
 .source-badge { font-size: 11px; color: var(--accent); background: var(--accent-2); padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.btn-remove-source { background: none; border: none; color: var(--text-2); font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; transition: color 0.15s; }
+.btn-remove-source:hover { color: #dc2626; }
 
 /* Toast */
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1c1c1e; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 500; pointer-events: none; transition: opacity 0.2s; }

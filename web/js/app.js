@@ -57,13 +57,26 @@ async function fetchSource(source) {
   throw new Error("No rules/index.json or .claude-plugin/marketplace.json found");
 }
 
+const STORAGE_KEY = "claude-rules-sources";
+
+function savedSources() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch { return []; }
+}
+
+function saveSource(source) {
+  const current = savedSources().filter(s => s.rawBase !== source.rawBase);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...current, { label: source.label, rawBase: source.rawBase }]));
+}
+
+function removeSource(rawBase) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSources().filter(s => s.rawBase !== rawBase)));
+}
+
 async function loadRules() {
-  try {
-    const { items } = await fetchSource(DEFAULT_SOURCE);
-    rules = items;
-  } catch {
-    rules = [];
-  }
+  const extra = savedSources();
+  const all = [DEFAULT_SOURCE, ...extra];
+  const results = await Promise.allSettled(all.map(s => fetchSource(s)));
+  rules = results.flatMap((r, i) => r.status === "fulfilled" ? r.value.items : []);
   render();
 }
 
@@ -82,6 +95,7 @@ async function addSource(url) {
   try {
     const { type, items } = await fetchSource(source);
     rules = rules.filter(r => r._source.rawBase !== source.rawBase).concat(items);
+    saveSource(source);
     input.value = "";
     activeCategory = "all";
     activeTag = "";
@@ -169,7 +183,12 @@ function renderGrid() {
       <div class="card-tags">${r.tags.map(t => `<span class="tag${activeTag === t ? " tag-active" : ""}" data-tag="${esc(t)}">${esc(t)}</span>`).join("")}</div>
       <div class="card-footer">
         <span class="card-author">
-          ${isMultiSource ? `<span class="source-badge">${esc(r._source.label)}</span>` : `by ${esc(r.author)}`}
+          ${isMultiSource
+            ? `<span class="source-badge">${esc(r._source.label)}</span>`
+            : `by ${esc(r.author)}`}
+          ${r._source.rawBase !== DEFAULT_SOURCE.rawBase
+            ? `<button class="btn-remove-source" data-rawbase="${esc(r._source.rawBase)}" title="Remove source">×</button>`
+            : ""}
         </span>
         <button class="btn-install" data-cmd="${esc(installCmd(r))}">Install</button>
       </div>
@@ -180,6 +199,17 @@ function renderGrid() {
     tag.addEventListener("click", () => {
       activeTag = activeTag === tag.dataset.tag ? "" : tag.dataset.tag;
       renderGrid();
+    });
+  });
+
+  el.querySelectorAll(".btn-remove-source").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const rawBase = btn.dataset.rawbase;
+      removeSource(rawBase);
+      rules = rules.filter(r => r._source.rawBase !== rawBase);
+      render();
+      showToast("Source removed");
     });
   });
 
