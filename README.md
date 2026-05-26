@@ -1,6 +1,6 @@
 # Claude Rules Web
 
-Web marketplace for [claude-rules](https://github.com/juanjimpad/claude-rules) — browse and install behavior rules for Claude Code from any browser.
+**[claude-rules.com](https://claude-rules.com/)** — Web marketplace for [claude-rules](https://github.com/juanjimpad/claude-rules). Browse and install behavior rules for Claude Code from any browser.
 
 ## What it does
 
