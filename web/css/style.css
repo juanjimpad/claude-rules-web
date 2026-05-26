@@ -88,6 +88,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .footer-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.15s; }
 .footer-btn:hover { border-color: var(--accent); color: var(--accent); }
 .footer-kofi:hover { border-color: #ff5e5b; color: #ff5e5b; }
+.footer-contribute { border-color: var(--accent); color: var(--accent); }
+.footer-contribute:hover { background: var(--accent); color: #fff; }
 .footer-commit { font-size: 12px; color: var(--text-2); text-decoration: none; font-family: monospace; position: absolute; right: 16px; }
 .footer-commit:hover { color: var(--accent); }
 
