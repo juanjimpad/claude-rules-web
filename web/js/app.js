@@ -184,7 +184,7 @@ function renderGrid() {
       <div class="card-footer">
         <span class="card-author">
           ${isMultiSource
-            ? `<span class="source-badge">${esc(r._source.label)}</span>`
+            ? `<a class="source-badge" href="https://github.com/${esc(r._source.label)}" target="_blank" rel="noopener">${esc(r._source.label)}</a>`
             : `by ${esc(r.author)}`}
           ${r._source.rawBase !== DEFAULT_SOURCE.rawBase
             ? `<button class="btn-remove-source" data-rawbase="${esc(r._source.rawBase)}" title="Remove source">×</button>`
