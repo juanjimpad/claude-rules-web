@@ -103,6 +103,16 @@ function installCmd(rule) {
   return `curl -sL ${rule._source.rawBase}/install.sh | bash -s ${rule.id}`;
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function esc(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 // ── Render ────────────────────────────────────────────────────────────────────
 
 function categories() {
@@ -119,7 +129,7 @@ function renderFilters() {
   const cats = categories();
   el.innerHTML = [
     `<button class="filter-btn${activeCategory === "all" ? " active" : ""}" data-cat="all">All</button>`,
-    ...cats.map(c => `<button class="filter-btn${activeCategory === c ? " active" : ""}" data-cat="${c}">${c}</button>`)
+    ...cats.map(c => `<button class="filter-btn${activeCategory === c ? " active" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`)
   ].join("");
 
   el.querySelectorAll(".filter-btn").forEach(btn => {
@@ -152,16 +162,16 @@ function renderGrid() {
   el.innerHTML = filtered.map(r => `
     <div class="card">
       <div class="card-header">
-        <span class="card-title">${r.title}</span>
-        <span class="card-category">${r.category}</span>
+        <span class="card-title">${esc(r.title)}</span>
+        <span class="card-category">${esc(r.category)}</span>
       </div>
-      <p class="card-desc">${r.description}</p>
-      <div class="card-tags">${r.tags.map(t => `<span class="tag${activeTag === t ? " tag-active" : ""}" data-tag="${t}">${t}</span>`).join("")}</div>
+      <p class="card-desc">${esc(r.description)}</p>
+      <div class="card-tags">${r.tags.map(t => `<span class="tag${activeTag === t ? " tag-active" : ""}" data-tag="${esc(t)}">${esc(t)}</span>`).join("")}</div>
       <div class="card-footer">
         <span class="card-author">
-          ${isMultiSource ? `<span class="source-badge">${r._source.label}</span>` : `by ${r.author}`}
+          ${isMultiSource ? `<span class="source-badge">${esc(r._source.label)}</span>` : `by ${esc(r.author)}`}
         </span>
-        <button class="btn-install" data-cmd="${installCmd(r)}">Install</button>
+        <button class="btn-install" data-cmd="${esc(installCmd(r))}">Install</button>
       </div>
     </div>
   `).join("");
