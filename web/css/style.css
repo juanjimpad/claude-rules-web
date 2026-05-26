@@ -1,0 +1,93 @@
+:root {
+  --bg:       #f2f2f7;
+  --surface:  #fff;
+  --border:   #e0e0e0;
+  --text:     #1c1c1e;
+  --text-2:   #8e8e93;
+  --accent:   #6c47ff;
+  --accent-2: #ede9ff;
+  --radius:   12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:       #1c1c1e;
+    --surface:  #2c2c2e;
+    --border:   #3a3a3c;
+    --text:     #f2f2f7;
+    --text-2:   #8e8e93;
+    --accent:   #a78bfa;
+    --accent-2: #2e2445;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Header */
+.header { background: var(--accent); color: #fff; padding: 48px 24px 40px; text-align: center; }
+.header-inner { max-width: 640px; margin: 0 auto; }
+.logo { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.tagline { font-size: 15px; opacity: 0.85; margin-bottom: 24px; line-height: 1.5; }
+.search { width: 100%; max-width: 400px; padding: 10px 16px; border-radius: 24px; border: none; font-size: 15px; outline: none; }
+.source-wrap { position: relative; display: inline-block; margin-top: 16px; }
+.btn-source { padding: 8px 18px; border-radius: 24px; border: 2px solid rgba(255,255,255,0.6); background: transparent; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.btn-source:hover { background: rgba(255,255,255,0.15); }
+.source-popup.hidden { display: none; }
+.source-popup { position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; width: 340px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 100; text-align: left; }
+.source-popup::before { content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 6px solid var(--border); }
+.source-popup::after { content: ""; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 6px solid var(--surface); }
+.popup-label { font-size: 12px; color: var(--text-2); margin-bottom: 10px; line-height: 1.4; }
+.popup-label code { font-size: 11px; background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+.popup-row { display: flex; gap: 8px; }
+.source-input { flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; outline: none; min-width: 0; }
+.source-input:focus { border-color: var(--accent); }
+.btn-add { padding: 8px 14px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
+.btn-add:hover:not(:disabled) { opacity: 0.85; }
+.btn-add:disabled { opacity: 0.5; cursor: default; }
+
+/* Main */
+.main { max-width: 900px; margin: 0 auto; padding: 32px 16px 64px; flex: 1; width: 100%; }
+
+/* Filters */
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.filter-btn.active, .filter-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+/* Card */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.card-title { font-size: 15px; font-weight: 600; }
+.card-category { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); background: var(--accent-2); padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.card-desc { font-size: 13px; color: var(--text-2); line-height: 1.5; flex: 1; }
+.card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-size: 11px; color: var(--text-2); background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; cursor: pointer; transition: all 0.15s; }
+.tag:hover { border-color: var(--accent); color: var(--accent); }
+.tag.tag-active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.card-footer { display: flex; align-items: center; gap: 8px; }
+.card-author { font-size: 12px; color: var(--text-2); flex: 1; }
+.btn-install { padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
+.btn-install:hover { opacity: 0.85; }
+.btn-install.copied { background: #22c55e; }
+
+/* Source badge */
+.source-badge { font-size: 11px; color: var(--accent); background: var(--accent-2); padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1c1c1e; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 500; pointer-events: none; transition: opacity 0.2s; }
+.toast.toast-error { background: #dc2626; }
+.toast.hidden { opacity: 0; }
+
+/* Footer */
+.footer { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 24px 16px; border-top: 1px solid var(--border); position: relative; }
+.footer-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.15s; }
+.footer-btn:hover { border-color: var(--accent); color: var(--accent); }
+.footer-kofi:hover { border-color: #ff5e5b; color: #ff5e5b; }
+.footer-commit { font-size: 12px; color: var(--text-2); text-decoration: none; font-family: monospace; position: absolute; right: 16px; }
+.footer-commit:hover { color: var(--accent); }
+
+/* Empty */
+.empty { grid-column: 1/-1; text-align: center; color: var(--text-2); padding: 48px 0; font-size: 15px; }
