@@ -3,5 +3,9 @@
   "compatibility_date": "2026-05-26",
   "observability": { "enabled": true },
   "assets": { "directory": "./web" },
-  "compatibility_flags": ["nodejs_compat"]
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    { "pattern": "claude-rules.com/*", "custom_domain": true },
+    { "pattern": "www.claude-rules.com/*", "custom_domain": true }
+  ]
 }
