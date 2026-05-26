@@ -5,6 +5,7 @@ const DEFAULT_SOURCE = {
 };
 
 let rules = [];
+let isMultiSource = false;
 let activeCategory = "all";
 let activeTag = "";
 let searchQuery = "";
@@ -12,7 +13,6 @@ let searchQuery = "";
 // ── Sources ──────────────────────────────────────────────────────────────────
 
 function githubToRaw(url) {
-  // Accept repo root or any deep link — extract owner/repo and optional branch
   const m = url.trim().match(
     /^https?:\/\/github\.com\/([^/]+\/[^/]+?)(?:\/(?:tree|blob)\/([^/]+))?(?:\/.*)?$/
   );
@@ -22,7 +22,6 @@ function githubToRaw(url) {
   return { label: slug, rawBase: `https://raw.githubusercontent.com/${slug}/${branch}` };
 }
 
-// Map a .claude-plugin/marketplace.json plugin entry to our card format
 function pluginToRule(plugin, marketplaceName, source) {
   return {
     id: plugin.name,
@@ -39,14 +38,12 @@ function pluginToRule(plugin, marketplaceName, source) {
 }
 
 async function fetchSource(source) {
-  // Try our native format first
   const rulesRes = await fetch(`${source.rawBase}/rules/index.json`);
   if (rulesRes.ok) {
     const data = await rulesRes.json();
     return { type: "rules", items: data.map(r => ({ ...r, _source: source })) };
   }
 
-  // Fallback: try .claude-plugin/marketplace.json
   const pluginRes = await fetch(`${source.rawBase}/.claude-plugin/marketplace.json`);
   if (pluginRes.ok) {
     const data = await pluginRes.json();
@@ -72,11 +69,15 @@ function removeSource(rawBase) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSources().filter(s => s.rawBase !== rawBase)));
 }
 
+function setRules(items) {
+  rules = items;
+  isMultiSource = new Set(rules.map(r => r._source.rawBase)).size > 1;
+}
+
 async function loadRules() {
-  const extra = savedSources();
-  const all = [DEFAULT_SOURCE, ...extra];
+  const all = [DEFAULT_SOURCE, ...savedSources()];
   const results = await Promise.allSettled(all.map(s => fetchSource(s)));
-  rules = results.flatMap((r, i) => r.status === "fulfilled" ? r.value.items : []);
+  setRules(results.flatMap(r => r.status === "fulfilled" ? r.value.items : []));
   render();
 }
 
@@ -88,15 +89,14 @@ async function addSource(url) {
   }
 
   const btn = document.getElementById("btn-add-source");
-  const input = document.getElementById("source-input");
   btn.disabled = true;
   btn.textContent = "Loading…";
 
   try {
     const { type, items } = await fetchSource(source);
-    rules = rules.filter(r => r._source.rawBase !== source.rawBase).concat(items);
+    setRules(rules.filter(r => r._source.rawBase !== source.rawBase).concat(items));
     saveSource(source);
-    input.value = "";
+    document.getElementById("source-input").value = "";
     activeCategory = "all";
     activeTag = "";
     const kind = type === "plugin" ? "plugin(s)" : "rule(s)";
@@ -145,14 +145,6 @@ function renderFilters() {
     `<button class="filter-btn${activeCategory === "all" ? " active" : ""}" data-cat="all">All</button>`,
     ...cats.map(c => `<button class="filter-btn${activeCategory === c ? " active" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`)
   ].join("");
-
-  el.querySelectorAll(".filter-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      activeCategory = btn.dataset.cat;
-      activeTag = "";
-      render();
-    });
-  });
 }
 
 function renderGrid() {
@@ -170,8 +162,6 @@ function renderGrid() {
     el.innerHTML = `<div class="empty">No rules found</div>`;
     return;
   }
-
-  const isMultiSource = new Set(rules.map(r => r._source.rawBase)).size > 1;
 
   el.innerHTML = filtered.map(r => `
     <div class="card">
@@ -194,49 +184,18 @@ function renderGrid() {
       </div>
     </div>
   `).join("");
-
-  el.querySelectorAll(".tag").forEach(tag => {
-    tag.addEventListener("click", () => {
-      activeTag = activeTag === tag.dataset.tag ? "" : tag.dataset.tag;
-      renderGrid();
-    });
-  });
-
-  el.querySelectorAll(".btn-remove-source").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      const rawBase = btn.dataset.rawbase;
-      removeSource(rawBase);
-      rules = rules.filter(r => r._source.rawBase !== rawBase);
-      render();
-      showToast("Source removed");
-    });
-  });
-
-  el.querySelectorAll(".btn-install").forEach(btn => {
-    btn.addEventListener("click", () => {
-      navigator.clipboard.writeText(btn.dataset.cmd).then(() => {
-        btn.textContent = "Copied!";
-        btn.classList.add("copied");
-        showToast("Command copied");
-        setTimeout(() => {
-          btn.textContent = "Install";
-          btn.classList.remove("copied");
-        }, 2000);
-      });
-    });
-  });
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 
+let toastTimer;
 function showToast(msg = "Command copied", isError = false) {
   const toast = document.getElementById("toast");
   toast.textContent = msg;
   toast.classList.toggle("toast-error", isError);
   toast.classList.remove("hidden");
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => toast.classList.add("hidden"), 2500);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.add("hidden"), 2500);
 }
 
 // ── Events ────────────────────────────────────────────────────────────────────
@@ -246,7 +205,49 @@ document.getElementById("search").addEventListener("input", e => {
   renderGrid();
 });
 
+document.getElementById("filters").addEventListener("click", e => {
+  const btn = e.target.closest(".filter-btn");
+  if (!btn) return;
+  activeCategory = btn.dataset.cat;
+  activeTag = "";
+  render();
+});
+
+document.getElementById("grid").addEventListener("click", e => {
+  const tag = e.target.closest(".tag");
+  const removeBtn = e.target.closest(".btn-remove-source");
+  const installBtn = e.target.closest(".btn-install");
+
+  if (tag) {
+    activeTag = activeTag === tag.dataset.tag ? "" : tag.dataset.tag;
+    renderGrid();
+  } else if (removeBtn) {
+    const rawBase = removeBtn.dataset.rawbase;
+    removeSource(rawBase);
+    setRules(rules.filter(r => r._source.rawBase !== rawBase));
+    render();
+    showToast("Source removed");
+  } else if (installBtn) {
+    navigator.clipboard.writeText(installBtn.dataset.cmd).then(() => {
+      installBtn.textContent = "Copied!";
+      installBtn.classList.add("copied");
+      showToast("Command copied");
+      setTimeout(() => {
+        installBtn.textContent = "Install";
+        installBtn.classList.remove("copied");
+      }, 2000);
+    });
+  }
+});
+
 const popup = document.getElementById("source-popup");
+
+function hidePopup() { popup.classList.add("hidden"); }
+
+function submitSource() {
+  const url = document.getElementById("source-input").value.trim();
+  if (url) { hidePopup(); addSource(url); }
+}
 
 document.getElementById("btn-open-popup").addEventListener("click", e => {
   e.stopPropagation();
@@ -256,22 +257,16 @@ document.getElementById("btn-open-popup").addEventListener("click", e => {
   }
 });
 
-document.getElementById("btn-add-source").addEventListener("click", () => {
-  const url = document.getElementById("source-input").value;
-  if (url.trim()) { popup.classList.add("hidden"); addSource(url.trim()); }
-});
+document.getElementById("btn-add-source").addEventListener("click", submitSource);
 
 document.getElementById("source-input").addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    const url = e.target.value;
-    if (url.trim()) { popup.classList.add("hidden"); addSource(url.trim()); }
-  }
-  if (e.key === "Escape") popup.classList.add("hidden");
+  if (e.key === "Enter") submitSource();
+  if (e.key === "Escape") hidePopup();
 });
 
 document.addEventListener("click", e => {
   if (!popup.classList.contains("hidden") && !popup.closest(".source-wrap").contains(e.target)) {
-    popup.classList.add("hidden");
+    hidePopup();
   }
 });
 
