@@ -1,14 +1,19 @@
-const DEFAULT_SOURCE = {
-  label: "juanjimpad/claude-rules",
-  rawBase: "https://raw.githubusercontent.com/juanjimpad/claude-rules/main",
-  type: "rules",
-};
+let defaultSources = [];
 
 let rules = [];
 let isMultiSource = false;
 let activeCategory = "all";
 let activeTag = "";
 let searchQuery = "";
+
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+
+const $filters = document.getElementById("filters");
+const $grid    = document.getElementById("grid");
+const $toast   = document.getElementById("toast");
+const $search  = document.getElementById("search");
+const $popup   = document.getElementById("source-popup");
+const $sourceWrap = $popup.parentElement;
 
 // ── Sources ──────────────────────────────────────────────────────────────────
 
@@ -25,13 +30,11 @@ function githubToRaw(url) {
 function pluginToRule(plugin, marketplaceName, source) {
   return {
     id: plugin.name,
-    name: plugin.name,
     title: plugin.displayName || plugin.name,
     description: plugin.description || "",
     category: plugin.category || "plugin",
     tags: plugin.keywords || plugin.tags || [],
     author: plugin.author?.name || marketplaceName,
-    version: plugin.version || "",
     _source: source,
     _installCmd: `/plugin install ${plugin.name}@${marketplaceName}`,
   };
@@ -57,7 +60,14 @@ async function fetchSource(source) {
 const STORAGE_KEY = "claude-rules-sources";
 
 function savedSources() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch { return []; }
+  try {
+    const sources = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return sources.filter(s =>
+      typeof s.label === "string" &&
+      typeof s.rawBase === "string" &&
+      s.rawBase.startsWith("https://raw.githubusercontent.com/")
+    );
+  } catch { return []; }
 }
 
 function saveSource(source) {
@@ -75,7 +85,15 @@ function setRules(items) {
 }
 
 async function loadRules() {
-  const all = [DEFAULT_SOURCE, ...savedSources()];
+  try {
+    const res = await fetch("sources.json");
+    if (res.ok) {
+      const data = await res.json();
+      defaultSources = data.sources || [];
+    }
+  } catch {}
+
+  const all = [...defaultSources, ...savedSources()];
   const results = await Promise.allSettled(all.map(s => fetchSource(s)));
   setRules(results.flatMap(r => r.status === "fulfilled" ? r.value.items : []));
   render();
@@ -139,16 +157,14 @@ function render() {
 }
 
 function renderFilters() {
-  const el = document.getElementById("filters");
   const cats = categories();
-  el.innerHTML = [
+  $filters.innerHTML = [
     `<button class="filter-btn${activeCategory === "all" ? " active" : ""}" data-cat="all">All</button>`,
     ...cats.map(c => `<button class="filter-btn${activeCategory === c ? " active" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`)
   ].join("");
 }
 
 function renderGrid() {
-  const el = document.getElementById("grid");
   const q = searchQuery.toLowerCase();
 
   const filtered = rules.filter(r => {
@@ -159,11 +175,11 @@ function renderGrid() {
   });
 
   if (!filtered.length) {
-    el.innerHTML = `<div class="empty">No rules found</div>`;
+    $grid.innerHTML = `<div class="empty">No rules found</div>`;
     return;
   }
 
-  el.innerHTML = filtered.map(r => `
+  $grid.innerHTML = filtered.map(r => `
     <div class="card">
       <div class="card-header">
         <span class="card-title">${esc(r.title)}</span>
@@ -176,7 +192,7 @@ function renderGrid() {
           ${isMultiSource
             ? `<a class="source-badge" href="https://github.com/${esc(r._source.label)}" target="_blank" rel="noopener">${esc(r._source.label)}</a>`
             : `by ${esc(r.author)}`}
-          ${r._source.rawBase !== DEFAULT_SOURCE.rawBase
+          ${!defaultSources.some(s => s.rawBase === r._source.rawBase)
             ? `<button class="btn-remove-source" data-rawbase="${esc(r._source.rawBase)}" title="Remove source">×</button>`
             : ""}
         </span>
@@ -190,22 +206,21 @@ function renderGrid() {
 
 let toastTimer;
 function showToast(msg = "Command copied", isError = false) {
-  const toast = document.getElementById("toast");
-  toast.textContent = msg;
-  toast.classList.toggle("toast-error", isError);
-  toast.classList.remove("hidden");
+  $toast.textContent = msg;
+  $toast.classList.toggle("toast-error", isError);
+  $toast.classList.remove("hidden");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.add("hidden"), 2500);
+  toastTimer = setTimeout(() => $toast.classList.add("hidden"), 2500);
 }
 
 // ── Events ────────────────────────────────────────────────────────────────────
 
-document.getElementById("search").addEventListener("input", e => {
+$search.addEventListener("input", e => {
   searchQuery = e.target.value;
   renderGrid();
 });
 
-document.getElementById("filters").addEventListener("click", e => {
+$filters.addEventListener("click", e => {
   const btn = e.target.closest(".filter-btn");
   if (!btn) return;
   activeCategory = btn.dataset.cat;
@@ -213,8 +228,8 @@ document.getElementById("filters").addEventListener("click", e => {
   render();
 });
 
-document.getElementById("grid").addEventListener("click", e => {
-  const tag = e.target.closest(".tag");
+$grid.addEventListener("click", e => {
+  const tag       = e.target.closest(".tag");
   const removeBtn = e.target.closest(".btn-remove-source");
   const installBtn = e.target.closest(".btn-install");
 
@@ -240,19 +255,19 @@ document.getElementById("grid").addEventListener("click", e => {
   }
 });
 
-const popup = document.getElementById("source-popup");
+const $popupBtn = document.getElementById("btn-open-popup");
 
-function hidePopup() { popup.classList.add("hidden"); }
+function hidePopup() { $popup.classList.add("hidden"); }
 
 function submitSource() {
   const url = document.getElementById("source-input").value.trim();
   if (url) { hidePopup(); addSource(url); }
 }
 
-document.getElementById("btn-open-popup").addEventListener("click", e => {
+$popupBtn.addEventListener("click", e => {
   e.stopPropagation();
-  popup.classList.toggle("hidden");
-  if (!popup.classList.contains("hidden")) {
+  $popup.classList.toggle("hidden");
+  if (!$popup.classList.contains("hidden")) {
     document.getElementById("source-input").focus();
   }
 });
@@ -265,23 +280,39 @@ document.getElementById("source-input").addEventListener("keydown", e => {
 });
 
 document.addEventListener("click", e => {
-  if (!popup.classList.contains("hidden") && !popup.closest(".source-wrap").contains(e.target)) {
-    hidePopup();
-  }
+  const themeBtn = e.target.closest(".theme-btn");
+  if (themeBtn) { applyTheme(themeBtn.dataset.themeVal); return; }
+  if (!$popup.classList.contains("hidden") && !$sourceWrap.contains(e.target)) hidePopup();
 });
 
 loadRules();
 
-// ── Footer commit ─────────────────────────────────────────────────────────────
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+const THEME_KEY = "claude-rules-theme";
+
+function applyTheme(val) {
+  if (val === "auto") {
+    document.documentElement.removeAttribute("data-theme");
+  } else {
+    document.documentElement.setAttribute("data-theme", val);
+  }
+  document.querySelectorAll(".theme-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.themeVal === val);
+  });
+  localStorage.setItem(THEME_KEY, val);
+}
+
+applyTheme(localStorage.getItem(THEME_KEY) || "auto");
+
+// ── Commit hash ───────────────────────────────────────────────────────────────
 
 fetch("https://api.github.com/repos/juanjimpad/claude-rules-web/commits/main")
   .then(r => r.json())
   .then(data => {
     const sha = data?.sha?.slice(0, 7);
-    const el = document.getElementById("footer-commit");
-    if (sha) {
-      el.textContent = sha;
-      el.href = `https://github.com/juanjimpad/claude-rules-web/commit/${data.sha}`;
-    }
+    if (!sha) return;
+    const el = document.getElementById("sticky-commit");
+    if (el) { el.textContent = sha; el.href = `https://github.com/juanjimpad/claude-rules-web/commit/${data.sha}`; }
   })
   .catch(() => {});

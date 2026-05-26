@@ -1,0 +1,36 @@
+{
+  "sources": [
+    {
+      "label": "juanjimpad/claude-rules",
+      "rawBase": "https://raw.githubusercontent.com/juanjimpad/claude-rules/main"
+    },
+    {
+      "label": "multica-ai/andrej-karpathy-skills",
+      "rawBase": "https://raw.githubusercontent.com/multica-ai/andrej-karpathy-skills/main"
+    },
+    {
+      "label": "rohitg00/awesome-claude-code-toolkit",
+      "rawBase": "https://raw.githubusercontent.com/rohitg00/awesome-claude-code-toolkit/main"
+    },
+    {
+      "label": "alirezarezvani/claude-skills",
+      "rawBase": "https://raw.githubusercontent.com/alirezarezvani/claude-skills/main"
+    },
+    {
+      "label": "anthropics/skills",
+      "rawBase": "https://raw.githubusercontent.com/anthropics/skills/main"
+    },
+    {
+      "label": "affaan-m/ECC",
+      "rawBase": "https://raw.githubusercontent.com/affaan-m/ECC/main"
+    },
+    {
+      "label": "bmad-code-org/BMAD-METHOD",
+      "rawBase": "https://raw.githubusercontent.com/bmad-code-org/BMAD-METHOD/main"
+    },
+    {
+      "label": "sangrokjung/claude-forge",
+      "rawBase": "https://raw.githubusercontent.com/sangrokjung/claude-forge/main"
+    }
+  ]
+}
