@@ -37,10 +37,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 /* Sticky bar */
 .sticky-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 48px; background: transparent; }
 .sticky-controls { display: flex; align-items: center; gap: 10px; }
-.sticky-btn { display: inline-flex; align-items: center; color: var(--text-2); transition: color 0.15s; }
-.sticky-btn:hover { color: var(--accent); }
-.sticky-commit { font-size: 11px; color: var(--text-2); text-decoration: none; font-family: monospace; }
-.sticky-commit:hover { color: var(--accent); }
+.sticky-btn { display: inline-flex; align-items: center; color: var(--text-2); }
+.sticky-commit { font-size: 11px; color: var(--text-2); font-family: monospace; }
 
 /* Header */
 .header { background: #6c47ff; color: #fff; }

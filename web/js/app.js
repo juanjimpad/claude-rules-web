@@ -318,5 +318,4 @@ const BUILD_SHA = 'BUILD_VERSION';
     return;
   }
   el.textContent = BUILD_SHA;
-  el.href = `https://github.com/juanjimpad/claude-rules-web/commits/main`;
 })();
