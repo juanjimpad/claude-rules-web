@@ -47,10 +47,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .header-inner { max-width: 640px; margin: 0 auto; padding: 20px 24px 28px; text-align: center; }
 .logo { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
 .tagline { font-size: 15px; opacity: 0.85; margin-bottom: 20px; line-height: 1.5; }
-.how-it-works { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
-.how-step { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border-radius: 20px; padding: 6px 14px; font-size: 13px; }
+.how-it-works { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: nowrap; margin-bottom: 24px; }
+.how-step { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border-radius: 20px; padding: 6px 14px; font-size: 13px; white-space: nowrap; }
 .how-num { background: rgba(255,255,255,0.25); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-.how-arrow { font-size: 14px; opacity: 0.6; }
+.how-arrow { font-size: 14px; opacity: 0.6; flex-shrink: 0; }
+@media (max-width: 700px) {
+  .how-it-works { flex-wrap: wrap; }
+  .how-arrow { display: none; }
+}
 .search { width: 100%; max-width: 400px; padding: 10px 16px; border-radius: 24px; border: none; font-size: 15px; outline: none; }
 .source-wrap { position: relative; display: inline-block; margin-top: 16px; }
 .btn-source { padding: 8px 18px; border-radius: 24px; border: 2px solid rgba(255,255,255,0.6); background: transparent; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
