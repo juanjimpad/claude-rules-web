@@ -10,7 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Inject build version
-        run: sed -i "s/BUILD_VERSION/$(git rev-parse --short HEAD)/g" web/js/app.js
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          sed -i "s/BUILD_VERSION/$SHA/g" web/js/app.js
+          echo "Injected SHA: $SHA"
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
