@@ -307,12 +307,16 @@ applyTheme(localStorage.getItem(THEME_KEY) || "auto");
 
 // ── Commit hash ───────────────────────────────────────────────────────────────
 
-fetch("version.json")
-  .then(r => r.json())
-  .then(data => {
-    const sha = data?.sha?.slice(0, 7);
-    if (!sha) return;
-    const el = document.getElementById("sticky-commit");
-    if (el) { el.textContent = sha; el.href = `https://github.com/juanjimpad/claude-rules-web/commit/${data.sha}`; }
-  })
-  .catch(() => {});
+const BUILD_SHA = 'BUILD_VERSION';
+
+(() => {
+  const el = document.getElementById("sticky-commit");
+  if (!el) return;
+  if (BUILD_SHA.startsWith('BUILD_')) {
+    el.textContent = "local";
+    el.removeAttribute("href");
+    return;
+  }
+  el.textContent = BUILD_SHA;
+  el.href = `https://github.com/juanjimpad/claude-rules-web/commits/main`;
+})();
